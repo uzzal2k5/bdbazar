@@ -1,0 +1,161 @@
+version: '3.9'
+
+services:
+  bdbazar-db:
+    image: postgres:15-alpine
+    container_name: bdbazar-db
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${AUTH_DB_NAME}  # Initial DB, others created via init.sql if needed
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - bdbazar-net
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    ports:
+      - "8081:8080"
+    depends_on:
+      - bdbazar-db
+    networks:
+      - bdbazar-net
+
+  auth-service:
+    image: bdbazar/auth-service:latest
+    container_name: bdbazar-auth-service
+    build:
+      context: ./auth-service
+    env_file:
+      - .env
+    ports:
+      - "${AUTH_SERVICE_PORT}:${AUTH_SERVICE_PORT}"
+    environment:
+      - DB_SOURCE=host=${DB_HOST} user=${DB_USER} password=${DB_PASSWORD} dbname=${AUTH_DB_NAME} port=${DB_PORT} sslmode=${DB_SSLMODE}
+    depends_on:
+      - bdbazar-db
+    networks:
+      - bdbazar-net
+
+  shop-service:
+    image: bdbazar/shop-service:latest
+    container_name: bdbazar-shop-service
+    build:
+      context: ./shop-service
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "${SHOP_SERVICE_PORT}:${SHOP_SERVICE_PORT}"
+    environment:
+      - DB_SOURCE=host=${DB_HOST} user=${DB_USER} password=${DB_PASSWORD} dbname=${SHOP_DB_NAME} port=${DB_PORT} sslmode=${DB_SSLMODE}
+      - AUTH_SERVICE_URL=http://auth-service:${AUTH_SERVICE_PORT}
+    depends_on:
+      - bdbazar-db
+      - auth-service
+    networks:
+      - bdbazar-net
+
+  product-service:
+    image: bdbazar/product-service:latest
+    container_name: bdbazar-product-service
+    build:
+      context: ./product-service
+    env_file:
+      - .env
+    ports:
+      - "${PRODUCT_SERVICE_PORT}:${PRODUCT_SERVICE_PORT}"
+    environment:
+      - DB_SOURCE=host=${DB_HOST} user=${DB_USER} password=${DB_PASSWORD} dbname=${PRODUCT_DB_NAME} port=${DB_PORT} sslmode=${DB_SSLMODE}
+      - AUTH_SERVICE_URL=http://auth-service:${AUTH_SERVICE_PORT}
+    depends_on:
+      - bdbazar-db
+      - auth-service
+    networks:
+      - bdbazar-net
+
+  order-service:
+    image: bdbazar/order-service:latest
+    container_name: bdbazar-order-service
+    build:
+      context: ./order-service
+    env_file:
+      - .env
+    ports:
+      - "${ORDER_SERVICE_PORT}:${ORDER_SERVICE_PORT}"
+    environment:
+      - DB_SOURCE=host=${DB_HOST} user=${DB_USER} password=${DB_PASSWORD} dbname=${ORDER_DB_NAME} port=${DB_PORT} sslmode=${DB_SSLMODE}
+      - AUTH_SERVICE_URL=http://auth-service:${AUTH_SERVICE_PORT}
+    depends_on:
+      - bdbazar-db
+      - auth-service
+    networks:
+      - bdbazar-net
+
+  payment-service:
+    image: bdbazar/payment-service:latest
+    container_name: bdbazar-payment-service
+    build:
+      context: ./payment-service
+    env_file:
+      - .env
+    ports:
+      - "${PAYMENT_SERVICE_PORT}:${PAYMENT_SERVICE_PORT}"
+    environment:
+      - DB_SOURCE=host=${DB_HOST} user=${DB_USER} password=${DB_PASSWORD} dbname=${PAYMENT_DB_NAME} port=${DB_PORT} sslmode=${DB_SSLMODE}
+      - AUTH_SERVICE_URL=http://auth-service:${AUTH_SERVICE_PORT}
+    depends_on:
+      - bdbazar-db
+      - auth-service
+    networks:
+      - bdbazar-net
+
+  shipping-service:
+    image: bdbazar/shipping-service:latest
+    container_name: bdbazar-shipping-service
+    build:
+      context: ./shipping-service
+    env_file:
+      - .env
+    ports:
+      - "${SHIPPING_SERVICE_PORT}:${SHIPPING_SERVICE_PORT}"
+    environment:
+      - DB_SOURCE=host=${DB_HOST} user=${DB_USER} password=${DB_PASSWORD} dbname=${SHIPPING_DB_NAME} port=${DB_PORT} sslmode=${DB_SSLMODE}
+      - AUTH_SERVICE_URL=http://auth-service:${AUTH_SERVICE_PORT}
+    depends_on:
+      - bdbazar-db
+      - auth-service
+    networks:
+      - bdbazar-net
+
+  admin-service:
+    image: bdbazar/admin-service:latest
+    container_name: bdbazar-admin-service
+    build:
+      context: ./admin-service
+    env_file:
+      - .env
+    ports:
+      - "${ADMIN_SERVICE_PORT}:${ADMIN_SERVICE_PORT}"
+    environment:
+      - DB_SOURCE=host=${DB_HOST} user=${DB_USER} password=${DB_PASSWORD} dbname=${ADMIN_DB_NAME} port=${DB_PORT} sslmode=${DB_SSLMODE}
+      - AUTH_SERVICE_URL=http://auth-service:${AUTH_SERVICE_PORT}
+    depends_on:
+      - bdbazar-db
+      - auth-service
+    networks:
+      - bdbazar-net
+
+volumes:
+  pgdata:
+  pgadmin_data:
+
+networks:
+  bdbazar-net:
+    driver: bridge

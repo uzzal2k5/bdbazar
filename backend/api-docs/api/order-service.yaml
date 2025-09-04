@@ -1,0 +1,138 @@
+openapi: 3.0.3
+info:
+  title: BDBazar Order Service API
+  version: 1.0.0
+  description: |
+    This service allows buyers to place orders, view their orders, and allows sellers/admins to manage order status.
+
+servers:
+  - url: http://localhost:8086
+    description: Local Order Service
+  - url: https://api.bdbazar.com/orders
+    description: Production Order Service
+
+paths:
+  /orders:
+    post:
+      summary: Place a new order
+      tags: [Orders]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreateRequest'
+      responses:
+        '201':
+          description: Order successfully placed
+
+    get:
+      summary: Get all orders for authenticated user (buyer or seller)
+      tags: [Orders]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of user orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderResponse'
+
+  /orders/{id}:
+    get:
+      summary: Get a specific order by ID
+      tags: [Orders]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrderID'
+      responses:
+        '200':
+          description: Order details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+
+  /orders/{id}/status:
+    put:
+      summary: Update order status (seller/admin only)
+      tags: [Orders]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrderID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderStatusUpdateRequest'
+      responses:
+        '200':
+          description: Order status updated
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    OrderID:
+      name: id
+      in: path
+      required: true
+      description: ID of the order
+      schema:
+        type: string
+
+  schemas:
+    OrderCreateRequest:
+      type: object
+      required: [product_id, quantity, address]
+      properties:
+        product_id:
+          type: string
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        quantity:
+          type: integer
+          example: 2
+        address:
+          type: string
+          example: 22/7 Gulshan, Dhaka
+
+    OrderStatusUpdateRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [pending, processing, shipped, delivered, cancelled]
+          example: shipped
+
+    OrderResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        product_id:
+          type: string
+        quantity:
+          type: integer
+        address:
+          type: string
+        buyer_id:
+          type: string
+        status:
+          type: string
+          enum: [pending, processing, shipped, delivered, cancelled]
+        created_at:
+          type: string
+          format: date-time

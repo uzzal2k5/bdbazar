@@ -1,0 +1,175 @@
+openapi: 3.0.3
+info:
+  title: BDBazar Product Service API
+  version: 1.0.0
+  description: |
+    This service manages product listing, updates, and browsing.
+    Sellers can create and manage their own products, and buyers can browse them.
+
+servers:
+  - url: http://localhost:8085
+    description: Local Product Service
+  - url: https://api.bdbazar.com/products
+    description: Production Product Service
+
+paths:
+  /products:
+    get:
+      summary: List all available products
+      tags: [Products]
+      responses:
+        '200':
+          description: A list of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductResponse'
+
+    post:
+      summary: Create a new product
+      tags: [Products]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreateRequest'
+      responses:
+        '201':
+          description: Product created
+
+  /products/{id}:
+    get:
+      summary: Get product details
+      tags: [Products]
+      parameters:
+        - $ref: '#/components/parameters/ProductID'
+      responses:
+        '200':
+          description: Product found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+
+    put:
+      summary: Update product details
+      tags: [Products]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProductID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductUpdateRequest'
+      responses:
+        '200':
+          description: Product updated
+
+    delete:
+      summary: Delete a product
+      tags: [Products]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProductID'
+      responses:
+        '200':
+          description: Product deleted
+
+  /shops/{shopId}/products:
+    get:
+      summary: List products by shop ID
+      tags: [Products]
+      parameters:
+        - $ref: '#/components/parameters/ShopID'
+      responses:
+        '200':
+          description: List of products for the shop
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    ProductID:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: ID of the product
+
+    ShopID:
+      name: shopId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: ID of the shop
+
+  schemas:
+    ProductCreateRequest:
+      type: object
+      required: [name, price, stock, shop_id]
+      properties:
+        name:
+          type: string
+          example: Men's Cotton T-Shirt
+        description:
+          type: string
+          example: High quality cotton shirt
+        price:
+          type: number
+          format: float
+          example: 499.99
+        stock:
+          type: integer
+          example: 50
+        shop_id:
+          type: string
+          example: "123e4567-e89b-12d3-a456-426614174000"
+
+    ProductUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        stock:
+          type: integer
+
+    ProductResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        stock:
+          type: integer
+        shop_id:
+          type: string

@@ -1,0 +1,140 @@
+openapi: 3.0.3
+info:
+  title: BDBazar Admin Service API
+  version: 1.0.0
+  description: |
+    This service provides administrative functions to manage users, shops, metrics, and dashboards
+    within the BDBazar marketplace platform.
+
+servers:
+  - url: http://localhost:8082
+    description: Local Admin Service
+  - url: https://api.bdbazar.com/admin
+    description: Production Admin Service
+
+paths:
+  /admin/dashboard:
+    get:
+      summary: Get admin dashboard metrics
+      tags: [Dashboard]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Summary statistics for the platform
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformMetrics'
+
+  /admin/users/{id}/block:
+    post:
+      summary: Block a user
+      tags: [User Management]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserID'
+      responses:
+        '200':
+          description: User has been blocked
+
+  /admin/users/{id}/approve:
+    post:
+      summary: Approve a user
+      tags: [User Management]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserID'
+      responses:
+        '200':
+          description: User has been approved
+
+  /admin/users/{id}/reset-password:
+    post:
+      summary: Force reset a user password
+      tags: [User Management]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserID'
+      responses:
+        '200':
+          description: Reset password triggered
+
+  /admin/users/{id}:
+    delete:
+      summary: Delete a user
+      tags: [User Management]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserID'
+      responses:
+        '200':
+          description: User deleted
+
+  /admin/shops/{id}/block:
+    post:
+      summary: Block a shop
+      tags: [Shop Management]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ShopID'
+      responses:
+        '200':
+          description: Shop blocked
+
+  /admin/shops/{id}/approve:
+    post:
+      summary: Approve a shop
+      tags: [Shop Management]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ShopID'
+      responses:
+        '200':
+          description: Shop approved
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    UserID:
+      name: id
+      in: path
+      required: true
+      description: ID of the user
+      schema:
+        type: string
+    ShopID:
+      name: id
+      in: path
+      required: true
+      description: ID of the shop
+      schema:
+        type: string
+
+  schemas:
+    PlatformMetrics:
+      type: object
+      properties:
+        total_users:
+          type: integer
+          example: 1250
+        total_shops:
+          type: integer
+          example: 340
+        total_orders:
+          type: integer
+          example: 5600
+        revenue:
+          type: integer
+          example: 1500000

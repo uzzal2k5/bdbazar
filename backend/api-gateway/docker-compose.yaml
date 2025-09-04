@@ -1,0 +1,24 @@
+version: '3.9'
+
+services:
+
+  api-gateway:
+    image: bdbazar/api-gateway:latest
+    build:
+      context: .
+    container_name: api-gateway
+    volumes:
+      - .env:/app/.env
+    env_file:
+      - .env
+    ports:
+      - "${GATEWAY_PORT}:${GATEWAY_PORT}"
+    environment:
+      - GATEWAY_PORT=${GATEWAY_PORT}
+      - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}"
+    networks:
+     - bdbazar-net
+
+networks:
+  bdbazar-net:
+    driver: bridge

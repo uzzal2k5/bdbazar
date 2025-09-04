@@ -1,0 +1,156 @@
+openapi: 3.0.3
+info:
+  title: BDBazar Shop Service API
+  version: 1.0.0
+  description: |
+    This service allows sellers to manage their shops: create, update, delete, and view shop information.
+
+servers:
+  - url: http://localhost:8084
+    description: Local Shop Service
+  - url: https://api.bdbazar.com/shops
+    description: Production Shop Service
+
+paths:
+  /shops:
+    post:
+      summary: Create a new shop
+      tags: [Shops]
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Shop creation payload
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShopCreateRequest'
+      responses:
+        '201':
+          description: Shop created successfully
+    get:
+      summary: List all approved shops
+      tags: [Shops]
+      responses:
+        '200':
+          description: A list of shops
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShopResponse'
+
+  /shops/{id}:
+    get:
+      summary: Get shop details by ID
+      tags: [Shops]
+      parameters:
+        - $ref: '#/components/parameters/ShopID'
+      responses:
+        '200':
+          description: Shop found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShopResponse'
+
+    put:
+      summary: Update shop information
+      tags: [Shops]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ShopID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShopUpdateRequest'
+      responses:
+        '200':
+          description: Shop updated
+
+    delete:
+      summary: Delete shop
+      tags: [Shops]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ShopID'
+      responses:
+        '200':
+          description: Shop deleted
+
+  /my/shops:
+    get:
+      summary: Get all shops owned by the logged-in seller
+      tags: [Shops]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Seller's shops
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShopResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    ShopID:
+      name: id
+      in: path
+      required: true
+      description: ID of the shop
+      schema:
+        type: string
+
+  schemas:
+    ShopCreateRequest:
+      type: object
+      required: [name, description, address]
+      properties:
+        name:
+          type: string
+          example: Fashion House
+        description:
+          type: string
+          example: Online fashion and clothing shop
+        address:
+          type: string
+          example: 123 Street, Dhaka
+
+    ShopUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        address:
+          type: string
+
+    ShopResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        address:
+          type: string
+        owner_id:
+          type: string
+        is_approved:
+          type: boolean

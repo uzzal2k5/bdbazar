@@ -1,0 +1,61 @@
+version: '3.9'
+
+services:
+  auth-service:
+    image: bdbazar/auth-service:latest
+    container_name: bdbazar-auth-service
+    build:
+      context: .
+    volumes:
+      - .env:/app/.env
+    env_file:
+      - .env
+    ports:
+      - "${AUTH_SERVICE_PORT:-8080}:8080"
+    environment:
+      - PORT=${AUTH_SERVICE_PORT}
+      - DB_SOURCE=host=${DB_HOST} user=${DB_USER} password=${DB_PASSWORD} dbname=${AUTH_DB_NAME} port=${DB_PORT} sslmode=${DB_SSLMODE}
+      - JWT_SECRET=${JWT_SECRET}
+      - ENVIRONMENT=${ENV}
+    depends_on:
+      - bdbazar-db
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/health" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - bdbazar-net
+
+  bdbazar-db:
+    image: postgres:15-alpine
+    container_name: bdbazar-db
+    restart: always
+    ports:
+      - 5432:5432
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${AUTH_DB_NAME}
+    volumes:
+      - ../../bdbazar-db/data/pgdata:/var/lib/postgresql/data
+    networks:
+      - bdbazar-net
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    ports:
+      - "8081:8080"
+    depends_on:
+      - bdbazar-db
+    networks:
+      - bdbazar-net
+volumes:
+  pgdata:
+
+networks:
+  bdbazar-net:
+    external: true

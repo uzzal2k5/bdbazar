@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  shop-service:
+    image: bdbazar/shop-service:latest
+    container_name: bdbazar-shop-service
+    build:
+      context: .
+    env_file:
+      - .env
+    ports:
+      - "${SHOP_SERVICE_PORT:-8084}:8084"
+    environment:
+      - PORT=${SHOP_SERVICE_PORT}
+      - DB_SOURCE=host=${DB_HOST} user=${DB_USER} password=${DB_PASSWORD} dbname=${SHOP_DB_NAME} port=${DB_PORT} sslmode=${DB_SSLMODE}
+      - JWT_SECRET=${JWT_SECRET}
+      - AUTH_SERVICE_URL=http://{AUTH_SERVICE_IP}:${AUTH_SERVICE_PORT}
+      - ENVIRONMENT=${ENV}
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8084/health" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - bdbazar-net
+
+
+networks:
+  bdbazar-net:
+    external: true

@@ -1,7 +1,11 @@
 import React from 'react';
 import { Store, Mail, Phone, MapPin } from 'lucide-react';
+interface FooterProps {
+  onNavigate: (page: 'home' | 'seller' | 'seller-login') => void;
+}
 
-export const Footer: React.FC = () => {
+// export const Footer: React.FC = () => {
+export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   return (
     <footer className="bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -12,7 +16,7 @@ export const Footer: React.FC = () => {
               <span className="text-xl font-bold">BD Bazar</span>
             </div>
             <p className="text-gray-400">
-              Your trusted online marketplace for buying and selling products worldwide.
+              The Smart Way to Buy and Sell in Bangladesh — With a Partner You Trust.
             </p>
           </div>
 
@@ -21,6 +25,13 @@ export const Footer: React.FC = () => {
             <ul className="space-y-2 text-gray-400">
               <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
               <li><a href="#" className="hover:text-white transition-colors">How It Works</a></li>
+              <li>
+              <button
+                 onClick={() => onNavigate('seller-login')}
+                 className="hover:text-white transition-colors text-left"
+              >
+               Become Seller
+              </button></li>
               <li><a href="#" className="hover:text-white transition-colors">Seller Guide</a></li>
               <li><a href="#" className="hover:text-white transition-colors">FAQ</a></li>
             </ul>
@@ -56,7 +67,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-          <p>&copy; 2025 BdBazar. All rights reserved.</p>
+          <p>&copy; 2025 BDBazar. All rights reserved.</p>
         </div>
       </div>
     </footer>

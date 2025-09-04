@@ -1,0 +1,138 @@
+openapi: 3.0.3
+info:
+  title: BDBazar Shipping Service API
+  version: 1.0.0
+  description: |
+    Handles order shipment, tracking, and delivery status updates.
+
+servers:
+  - url: http://localhost:8088
+    description: Local Shipping Service
+  - url: https://api.bdbazar.com/shipping
+    description: Production Shipping Service
+
+paths:
+  /shipments:
+    post:
+      summary: Create a new shipment for an order
+      tags: [Shipments]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipmentCreateRequest'
+      responses:
+        '201':
+          description: Shipment created
+
+    get:
+      summary: Get all shipments for authenticated user (seller or admin)
+      tags: [Shipments]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of shipments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShipmentResponse'
+
+  /shipments/{id}:
+    get:
+      summary: Get shipment details by ID
+      tags: [Shipments]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ShipmentID'
+      responses:
+        '200':
+          description: Shipment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipmentResponse'
+
+    put:
+      summary: Update shipment status
+      tags: [Shipments]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ShipmentID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipmentStatusUpdateRequest'
+      responses:
+        '200':
+          description: Shipment status updated
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    ShipmentID:
+      name: id
+      in: path
+      required: true
+      description: ID of the shipment
+      schema:
+        type: string
+
+  schemas:
+    ShipmentCreateRequest:
+      type: object
+      required: [order_id, courier_service, tracking_number]
+      properties:
+        order_id:
+          type: string
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        courier_service:
+          type: string
+          example: "Pathao"
+        tracking_number:
+          type: string
+          example: "TRACK123456"
+
+    ShipmentStatusUpdateRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [pending, in_transit, delivered, cancelled]
+          example: in_transit
+
+    ShipmentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        order_id:
+          type: string
+        courier_service:
+          type: string
+        tracking_number:
+          type: string
+        status:
+          type: string
+          enum: [pending, in_transit, delivered, cancelled]
+        shipped_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time

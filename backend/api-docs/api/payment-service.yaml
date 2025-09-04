@@ -1,0 +1,129 @@
+openapi: 3.0.3
+info:
+  title: BDBazar Payment Service API
+  version: 1.0.0
+  description: |
+    Handles payment processing, tracking, and verification between buyers and sellers.
+
+servers:
+  - url: http://localhost:8087
+    description: Local Payment Service
+  - url: https://api.bdbazar.com/payments
+    description: Production Payment Service
+
+paths:
+  /payments:
+    post:
+      summary: Make a payment for an order
+      tags: [Payments]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '201':
+          description: Payment processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+
+    get:
+      summary: Get all payments by authenticated user
+      tags: [Payments]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of payments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaymentResponse'
+
+  /payments/{id}:
+    get:
+      summary: Get payment details by ID
+      tags: [Payments]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PaymentID'
+      responses:
+        '200':
+          description: Payment found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+
+  /payments/{id}/verify:
+    post:
+      summary: Verify payment status (admin)
+      tags: [Payments]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PaymentID'
+      responses:
+        '200':
+          description: Payment verified
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    PaymentID:
+      name: id
+      in: path
+      required: true
+      description: ID of the payment transaction
+      schema:
+        type: string
+
+  schemas:
+    PaymentRequest:
+      type: object
+      required: [order_id, amount, method]
+      properties:
+        order_id:
+          type: string
+          example: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+        amount:
+          type: number
+          format: float
+          example: 999.50
+        method:
+          type: string
+          enum: [credit_card, debit_card, bKash, Nagad, COD]
+          example: bKash
+
+    PaymentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        order_id:
+          type: string
+        user_id:
+          type: string
+        amount:
+          type: number
+        method:
+          type: string
+        status:
+          type: string
+          enum: [pending, success, failed]
+        created_at:
+          type: string
+          format: date-time

@@ -1,0 +1,29 @@
+version: '3.9'
+
+services:
+  order-service:
+    image: bdbazar/order-service:latest
+    container_name: bdbazar-order-service
+    build:
+      context: .
+    env_file:
+      - .env
+    ports:
+      - "${ORDER_SERVICE_PORT:-8086}:8086"
+    environment:
+      - PORT=${ORDER_SERVICE_PORT}
+      - DB_SOURCE=host=${DB_HOST} user=${DB_USER} password=${DB_PASS} dbname=${ORDER_DB_NAME} port=${DB_PORT} sslmode=${DB_SSLMODE}
+      - JWT_SECRET=${JWT_SECRET}
+      - AUTH_SERVICE_URL=http://auth-service:${AUTH_SERVICE_PORT}
+      - ENVIRONMENT=${ENV}
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8086/health" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - bdbazar-net
+
+networks:
+  bdbazar-net:
+    external: true

@@ -1,0 +1,29 @@
+version: '3.9'
+
+services:
+  payment-service:
+    image: bdbazar/payment-service:latest
+    container_name: bdbazar-payment-service
+    build:
+      context: .
+    env_file:
+      - .env
+    ports:
+      - "${PAYMENT_SERVICE_PORT:-8087}:${PAYMENT_SERVICE_PORT}"
+    environment:
+      - PORT=${PAYMENT_SERVICE_PORT}
+      - DB_SOURCE=host=${DB_HOST} user=${DB_USER} password=${DB_PASS} dbname=${PAYMENT_DB_NAME} port=${DB_PORT} sslmode=${DB_SSLMODE}
+      - JWT_SECRET=${JWT_SECRET}
+      - AUTH_SERVICE_URL=http://auth-service:${AUTH_SERVICE_PORT}
+      - ENVIRONMENT=${ENV}
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/health" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - bdbazar-net
+
+networks:
+  bdbazar-net:
+    external: true
